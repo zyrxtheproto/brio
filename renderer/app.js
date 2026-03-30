@@ -1065,6 +1065,23 @@ async function init() {
 
   // Background check for free games — shows notif dot if any found
   checkForFreeGames()
+
+  // Auto-updater notifications
+  const updateDot    = document.getElementById('update-notif-dot')
+  const updateBanner = document.getElementById('update-banner')
+  const updateMsg    = document.getElementById('update-banner-msg')
+
+  window.brioAPI.onUpdateAvailable(() => {
+    updateDot.classList.add('show')
+    updateBanner.style.display = 'flex'
+    updateMsg.textContent = 'A new version of Brío is downloading in the background...'
+  })
+
+  window.brioAPI.onUpdateReady(() => {
+    updateDot.classList.add('show')
+    updateBanner.style.display = 'flex'
+    updateMsg.textContent = 'Update ready — restart Brío to apply it.'
+  })
 }
 
 init()

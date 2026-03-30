@@ -29,6 +29,10 @@ contextBridge.exposeInMainWorld('brioAPI', {
   winMaximize:   ()           => ipcRenderer.invoke('win:maximize'),
   winClose:      ()           => ipcRenderer.invoke('win:close'),
 
+  // Auto-updater events
+  onUpdateAvailable: (cb) => ipcRenderer.on('update:available', cb),
+  onUpdateReady:     (cb) => ipcRenderer.on('update:ready',     cb),
+
   // Open URL in default browser
   openUrl:       (url)              => ipcRenderer.invoke('shell:openUrl', url),
   // Epic free games

@@ -40,6 +40,8 @@ function createWindow() {
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     autoUpdater.checkForUpdatesAndNotify()
+    autoUpdater.on('update-available',  () => mainWindow.webContents.send('update:available'))
+    autoUpdater.on('update-downloaded', () => mainWindow.webContents.send('update:ready'))
   }
 }
 

@@ -197,6 +197,9 @@ select.inp{cursor:pointer}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--accent);color:#fff;padding:10px 24px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;transition:transform .3s;pointer-events:none;z-index:999;box-shadow:0 4px 24px rgba(var(--accent-rgb),0.3)}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.err{background:var(--red)}
+#update-banner{position:fixed;bottom:0;left:72px;right:0;background:rgba(30,32,40,.97);border-top:1px solid rgba(var(--accent-rgb),.35);color:var(--text-sec);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:500;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;z-index:900;letter-spacing:.4px}
+#update-banner-dismiss{background:none;border:none;color:var(--text-sec);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;opacity:.6}
+#update-banner-dismiss:hover{opacity:1}
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
@@ -245,6 +248,7 @@ select.inp{cursor:pointer}
     <div class="nav-spacer"></div>
     <button class="nav-btn" id="nb-settings" onclick="goPage('settings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span class="notif-dot" id="update-notif-dot"></span>
       <span class="nav-tooltip">Settings</span>
     </button>
   </nav>
@@ -575,6 +579,10 @@ select.inp{cursor:pointer}
 </div>
 
 <div id="toast"></div>
+<div id="update-banner" style="display:none">
+  <span id="update-banner-msg"></span>
+  <button id="update-banner-dismiss" onclick="document.getElementById('update-banner').style.display='none'">✕</button>
+</div>
 <script src="app.js"></script>
 </body>
 </html>
