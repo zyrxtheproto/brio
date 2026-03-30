@@ -53,54 +53,6 @@ function nextHolidays() {
   return HOLIDAYS.filter(h => h.date >= t).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 }
 
-// ── Default game library ──────────────────────────────────────────────────────
-const GAMES_DEFAULT = [
-  {
-    id: 'minecraft', name: 'Minecraft', platform: 'Other', genre: 'Sandbox', session: 'any',
-    steamId: '', localImage: '', exePath: '', launchArgs: '',
-    tags: ['creative', 'open world', 'relaxing'],
-    score: { chill: 95, explore: 90, social: 70, focused: 40, hype: 30 },
-  },
-  {
-    // Epic-only install: no steamId. Set exePath in Manage to launch.
-    id: 'rocketleague', name: 'Rocket League', platform: 'Epic', genre: 'Competitive', session: 'short',
-    steamId: '', localImage: '', exePath: '', launchArgs: '',
-    tags: ['fast', 'competitive', 'skill'],
-    score: { hype: 95, focused: 85, chill: 30, social: 60, explore: 20 },
-  },
-  {
-    id: 'amongus', name: 'Among Us', platform: 'Steam', genre: 'Social', session: 'short',
-    steamId: '945360', localImage: '', exePath: '', launchArgs: '',
-    tags: ['party', 'social', 'fun'],
-    score: { social: 98, hype: 75, chill: 50, focused: 20, explore: 30 },
-  },
-  {
-    id: 'cs2', name: 'CS2', platform: 'Steam', genre: 'FPS', session: 'medium',
-    steamId: '730', localImage: '', exePath: '', launchArgs: '',
-    tags: ['competitive', 'tactical', 'intense'],
-    score: { hype: 90, focused: 92, social: 55, chill: 15, explore: 20 },
-  },
-  {
-    // 668580 is Atomic Heart — wrong. Verify the correct App ID on Steam and set it in Manage.
-    id: 'arcraiders', name: 'Arc Raiders', platform: 'Steam', genre: 'Extraction', session: 'long',
-    steamId: '', localImage: '', exePath: '', launchArgs: '',
-    tags: ['survival', 'team', 'tense'],
-    score: { focused: 88, explore: 82, hype: 70, social: 50, chill: 20 },
-  },
-  {
-    id: 'bloons', name: 'Bloons TD 6', platform: 'Steam', genre: 'Strategy', session: 'any',
-    steamId: '960090', localImage: '', exePath: '', launchArgs: '',
-    tags: ['casual', 'strategy', 'relaxing'],
-    score: { chill: 88, focused: 80, hype: 40, social: 30, explore: 50 },
-  },
-  {
-    id: 'vrchat', name: 'VRChat', platform: 'Steam', genre: 'Social', session: 'any',
-    steamId: '438100', localImage: '', exePath: '', launchArgs: '',
-    tags: ['virtual', 'social', 'creative'],
-    score: { social: 95, explore: 85, chill: 70, hype: 50, focused: 20 },
-  },
-]
-
 // ── In-memory state (hydrated from disk on init) ──────────────────────────────
 let GAMES    = []
 let SESSIONS = []
@@ -1066,17 +1018,9 @@ async function init() {
   const savedGames    = await window.brioAPI.getStore('games_v3')
   const savedSessions = await window.brioAPI.getStore('sessions_v3')
   const savedSettings = await window.brioAPI.getStore('settings')
-  GAMES    = savedGames    || GAMES_DEFAULT
+  GAMES    = savedGames    || []
   SESSIONS = savedSessions || []
   if (savedSettings) Object.assign(SETTINGS, savedSettings)
-
-  // Patch known bad defaults that may have been persisted from an earlier run
-  const BAD_IDS = { rocketleague: '252950', arcraiders: '668580' }
-  let patched = false
-  GAMES.forEach(g => {
-    if (BAD_IDS[g.id] && g.steamId === BAD_IDS[g.id]) { g.steamId = ''; patched = true }
-  })
-  if (patched) saveGames()
 
   // Load or fetch holidays
   if (SETTINGS.country && SETTINGS.holidaysCache?.length) {
