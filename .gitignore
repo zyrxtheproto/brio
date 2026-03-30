@@ -1,0 +1,6 @@
+node_modules/
+dist/
+Logs/
+.claude/
+*.log
+*.exe

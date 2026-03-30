@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brío</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0c10;--surface:#13151c;--surface2:#1a1d26;--surface3:#21242f;
+  --border:#252830;--border2:#2e3140;--accent:#4f8ef7;--accent-rgb:79,142,247;--accent2:#7c5cbf;
+  --text:#e8eaf0;--muted:#5a6070;--muted2:#8890a0;
+  --green:#34d399;--amber:#fbbf24;--red:#f87171;--purple:#a78bfa;
+}
+html,body{background:transparent;color:var(--text);font-family:'Inter',sans-serif;height:100%;overflow:hidden}
+#app-root{height:100vh;background:var(--bg);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.06)}
+#titlebar{height:34px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;-webkit-app-region:drag;position:relative}
+.tb-title{position:absolute;left:50%;transform:translateX(-50%);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:2.5px;color:var(--muted);pointer-events:none;user-select:none}
+.tb-controls{margin-left:auto;display:flex;-webkit-app-region:no-drag}
+.tb-btn{width:34px;height:34px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tb-btn:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+.tb-btn.close:hover{background:var(--red);color:#fff}
+.tb-btn svg{width:10px;height:10px}
+#shell{display:flex;flex:1;overflow:hidden}
+#sidebar{width:72px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:8px;flex-shrink:0;z-index:10}
+.logo-mark{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:18px}
+.nav-btn{width:46px;height:46px;border-radius:12px;border:none;background:transparent;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:rgba(var(--accent-rgb),0.15);color:var(--accent)}
+.nav-btn.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:22px;background:var(--accent);border-radius:0 2px 2px 0}
+.nav-btn svg{width:22px;height:22px}
+.nav-spacer{flex:1}
+.nav-tooltip{position:absolute;left:54px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:100}
+.nav-btn:hover .nav-tooltip{opacity:1}
+#main{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;padding:32px 36px;opacity:0;transform:translateX(18px);pointer-events:none;transition:opacity .28s ease,transform .28s ease}
+.page.active{opacity:1;transform:translateX(0);pointer-events:all}
+.page.exit{opacity:0;transform:translateX(-18px)}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.page-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:600;letter-spacing:1px}
+.clock-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--muted2);display:flex;align-items:center;gap:6px}
+.clock-pill strong{color:var(--text);font-size:14px}
+.insights-row{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;flex:1;min-width:220px}
+.insight-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.insight-icon.green{background:rgba(52,211,153,0.12)}
+.insight-icon.amber{background:rgba(251,191,36,0.12)}
+.insight-icon.purple{background:rgba(167,139,250,0.12)}
+.insight-icon.blue{background:rgba(var(--accent-rgb),0.12)}
+.insight-text{font-size:13px;color:var(--muted2);line-height:1.5}
+.insight-text strong{color:var(--text);font-weight:500}
+.mood-strip{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.mood-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;font-family:'Inter',sans-serif;color:var(--muted2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.mood-btn:hover{border-color:var(--border2);color:var(--text)}
+.mood-btn.active{background:rgba(var(--accent-rgb),0.12);border-color:var(--accent);color:var(--accent)}
+.mood-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.discover-layout{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+.hero-wrap{position:relative;border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--border);min-height:300px}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .6s;filter:blur(2px)}
+.hero-content{position:relative;padding:32px;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:300px}
+.hero-badge{font-size:11px;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.hero-name{font-family:'Rajdhani',sans-serif;font-size:38px;font-weight:700;line-height:1.1;margin-bottom:10px}
+.hero-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.htag{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:3px 10px;font-size:12px;color:var(--muted2)}
+.htag.warn{border-color:rgba(251,191,36,0.4);color:var(--amber)}
+.hero-reason{font-size:13px;color:var(--muted2);line-height:1.7;background:rgba(0,0,0,0.45);border-radius:10px;padding:12px 16px;margin-bottom:20px;border-left:2px solid var(--accent)}
+.hero-actions{display:flex;gap:8px;align-items:center}
+.btn-launch{background:var(--accent);border:none;border-radius:10px;padding:12px 28px;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:600;letter-spacing:1px;color:#fff;cursor:pointer;transition:all .15s}
+.btn-launch:hover{background:#6aa3ff;transform:translateY(-1px)}
+.btn-skip{background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--muted2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-skip:hover{color:var(--text);border-color:var(--muted)}
+.fatigue-badge{font-size:10px;color:var(--amber);border:1px solid rgba(251,191,36,0.3);border-radius:5px;padding:3px 8px;display:none}
+.side-panel{display:flex;flex-direction:column;gap:8px}
+.side-label{font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.mini-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+.mini-card:hover{border-color:var(--border2);background:var(--surface2)}
+.mini-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.07}
+.mini-thumb{width:50px;height:50px;border-radius:8px;object-fit:cover;background:var(--surface2);flex-shrink:0}
+.mini-info{flex:1;min-width:0}
+.mini-name{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-sub{font-size:11px;color:var(--muted2)}
+.mini-pct{font-size:13px;font-weight:500;color:var(--accent);flex-shrink:0}
+.mini-fatigue{font-size:9px;color:var(--amber);display:block}
+.lib-controls{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.search-box{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border .2s}
+.search-box:focus{border-color:var(--border2)}
+.search-box::placeholder{color:var(--muted)}
+.filter-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:12px;color:var(--muted2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap}
+.filter-btn.active{border-color:var(--accent);color:var(--accent)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.lib-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
+.lib-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.lib-img{width:100%;height:108px;object-fit:cover;background:var(--surface2);display:block}
+.lib-img-ph{width:100%;height:108px;background:var(--surface2);display:flex;align-items:center;justify-content:center}
+.lib-body{padding:14px}
+.lib-name{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lib-meta{font-size:11px;color:var(--muted2)}
+.lib-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.ltag{font-size:9px;padding:2px 5px;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.platform-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.72);border-radius:4px;padding:2px 6px;font-size:9px;color:var(--muted2)}
+.fatigue-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--amber)}
+.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ins-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.ins-block h3{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;margin-bottom:18px;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-key{font-size:13px;color:var(--muted2)}
+.stat-val{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600}
+.streak-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.streak-item:last-child{border-bottom:none}
+.streak-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+.streak-text{font-size:12px;color:var(--muted2);flex:1}
+.streak-count{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--green)}
+.heatmap-row{display:flex;gap:4px;margin-bottom:7px;align-items:center}
+.heatmap-label{font-size:10px;color:var(--muted);width:32px;flex-shrink:0}
+.heatmap-cells{display:flex;gap:3px}
+.hcell{width:16px;height:16px;border-radius:3px;background:var(--surface2)}
+.hcell.l1{background:rgba(var(--accent-rgb),0.25)}
+.hcell.l2{background:rgba(var(--accent-rgb),0.5)}
+.hcell.l3{background:rgba(var(--accent-rgb),0.85)}
+.holiday-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.holiday-row:last-child{border-bottom:none}
+.holiday-date{color:var(--accent);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;min-width:52px}
+.holiday-soon{color:var(--green);font-size:10px;background:rgba(52,211,153,0.1);border-radius:4px;padding:2px 6px}
+.settings-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.card-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.card-block h3{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:600;margin-bottom:6px}
+.card-block p{font-size:13px;color:var(--muted2);margin-bottom:18px;line-height:1.6}
+.input-row{display:flex;gap:8px;margin-bottom:10px}
+.inp{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border .2s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--muted)}
+.inp[readonly]{cursor:default;color:var(--muted2)}
+select.inp{cursor:pointer}
+.btn-primary{background:var(--accent);border:none;border-radius:8px;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:.5px;color:#fff;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary:hover{background:#6aa3ff}
+.btn-primary:disabled{opacity:.4;cursor:default}
+.result-preview{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;display:none;gap:12px;align-items:flex-start}
+.result-preview.show{display:flex}
+.preview-img{width:80px;height:37px;border-radius:5px;object-fit:cover;background:var(--border);flex-shrink:0}
+.pname{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600}
+.psub{font-size:11px;color:var(--muted2);margin-bottom:8px}
+.mood-check-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.mcheck{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted2);cursor:pointer;transition:all .15s}
+.mcheck.on{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),0.1)}
+.manage-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
+.manage-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);transition:border-radius .15s}
+.manage-item.open{border-radius:8px 8px 0 0}
+.manage-item img{width:36px;height:17px;object-fit:cover;border-radius:3px;background:var(--border)}
+.manage-name{flex:1;font-size:13px}
+.btn-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px;line-height:1;transition:color .15s}
+.btn-del:hover{color:var(--red)}
+.status-msg{font-size:11px;margin-top:6px;min-height:16px}
+.status-ok{color:var(--green)}
+.status-err{color:var(--red)}
+.results-list{display:flex;flex-direction:column;gap:5px;margin-top:8px;max-height:200px;overflow-y:auto}
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:13px}
+.toggle-sub{font-size:11px;color:var(--muted2);margin-top:2px}
+.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:11px;cursor:pointer;transition:background .2s;border:1px solid var(--border2)}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:50%;transform:translateY(-50%);background:var(--muted);border-radius:50%;transition:all .2s}
+.toggle-switch input:checked + .toggle-slider{background:rgba(var(--accent-rgb),0.3);border-color:var(--accent)}
+.toggle-switch input:checked + .toggle-slider::before{background:var(--accent);transform:translate(18px,-50%)}
+/* no-launch hint */
+.no-launch-hint{font-size:10px;color:var(--amber);margin-top:6px}
+/* accent swatches */
+.accent-swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.accent-swatch.active{border-color:#fff;transform:scale(1.2)}
+/* danger button */
+.btn-danger{background:transparent;border:1px solid rgba(248,113,113,0.35);border-radius:8px;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--red);cursor:pointer;transition:all .15s}
+.btn-danger:hover{background:rgba(248,113,113,0.1)}
+/* nav notification dot */
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--green);display:none;box-shadow:0 0 6px var(--green)}
+.notif-dot.show{display:block;animation:pulse-dot 2s ease-in-out infinite}
+/* lib card edit button overlay */
+.lib-edit-btn{position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;padding:4px 8px;color:var(--muted2);cursor:pointer;opacity:0;transition:opacity .15s;font-size:14px;z-index:2;line-height:1}
+.lib-card:hover .lib-edit-btn{opacity:1}
+.lib-edit-btn:hover{color:#fff}
+/* modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px;width:440px;max-width:90vw;display:flex;flex-direction:column;gap:12px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;letter-spacing:.5px}
+.modal-close{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1}
+.modal-close:hover{color:var(--text)}
+/* free games card */
+.free-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
+.free-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.free-badge{position:absolute;top:8px;left:8px;background:var(--green);color:#000;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.5px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--accent);color:#fff;padding:10px 24px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;transition:transform .3s;pointer-events:none;z-index:999;box-shadow:0 4px 24px rgba(var(--accent-rgb),0.3)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--red)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app-root">
+<div id="titlebar">
+  <span class="tb-title">BRÍO</span>
+  <div class="tb-controls">
+    <button class="tb-btn" onclick="brioAPI.winMinimize()" title="Minimize">
+      <svg viewBox="0 0 10 2"><line x1="0" y1="1" x2="10" y2="1" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
+    <button class="tb-btn" onclick="brioAPI.winMaximize()" title="Maximize">
+      <svg viewBox="0 0 10 10"><rect x="0.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
+    <button class="tb-btn close" onclick="brioAPI.winClose()" title="Close">
+      <svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
+  </div>
+</div>
+<div id="shell">
+  <nav id="sidebar">
+    <div class="logo-mark">Br</div>
+    <button class="nav-btn active" id="nb-discover" onclick="goPage('discover',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+      <span class="nav-tooltip">Discover</span>
+    </button>
+    <button class="nav-btn" id="nb-library" onclick="goPage('library',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="nav-tooltip">Library</span>
+    </button>
+    <button class="nav-btn" id="nb-insights" onclick="goPage('insights',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      <span class="nav-tooltip">Insights</span>
+    </button>
+    <button class="nav-btn" id="nb-free" onclick="goPage('free',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20,12 20,22 4,22 4,12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span class="notif-dot" id="free-notif-dot"></span>
+      <span class="nav-tooltip">Free Games</span>
+    </button>
+    <button class="nav-btn" id="nb-add" onclick="goPage('add',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span class="nav-tooltip">Add Game</span>
+    </button>
+    <div class="nav-spacer"></div>
+    <button class="nav-btn" id="nb-settings" onclick="goPage('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span class="nav-tooltip">Settings</span>
+    </button>
+  </nav>
+
+  <div id="main">
+
+    <!-- DISCOVER -->
+    <div class="page active" id="page-discover">
+      <div class="topbar">
+        <div class="page-title">Discover</div>
+        <div class="clock-pill"><span id="clock-d">--:--</span>&nbsp;·&nbsp;<strong id="day-d">---</strong></div>
+      </div>
+      <div class="insights-row" id="discover-insights"></div>
+      <div class="mood-strip">
+        <button class="mood-btn" data-mood="chill"   onclick="setMood(this)"><span class="mood-dot" style="background:#34d399"></span>Chill</button>
+        <button class="mood-btn" data-mood="focused" onclick="setMood(this)"><span class="mood-dot" style="background:#4f8ef7"></span>Focused</button>
+        <button class="mood-btn" data-mood="hype"    onclick="setMood(this)"><span class="mood-dot" style="background:#fbbf24"></span>Hype</button>
+        <button class="mood-btn" data-mood="social"  onclick="setMood(this)"><span class="mood-dot" style="background:#a78bfa"></span>Social</button>
+        <button class="mood-btn" data-mood="explore" onclick="setMood(this)"><span class="mood-dot" style="background:#f87171"></span>Explore</button>
+      </div>
+      <div class="discover-layout">
+        <div class="hero-wrap">
+          <div class="hero-bg" id="hero-bg"></div>
+          <div class="hero-content">
+            <div class="hero-badge" id="hero-badge">Best match</div>
+            <div class="hero-name" id="hero-name">…</div>
+            <div class="hero-tags" id="hero-tags"></div>
+            <div class="hero-reason" id="hero-reason">Loading...</div>
+            <div class="hero-actions">
+              <button class="btn-launch" onclick="doLaunch()">LAUNCH</button>
+              <button class="btn-skip"   onclick="reroll()">Try another ↻</button>
+              <span class="fatigue-badge" id="fatigue-badge">⚠ Fatigue detected</span>
+            </div>
+          </div>
+        </div>
+        <div class="side-panel">
+          <div class="side-label">Up next</div>
+          <div id="mini-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="page" id="page-library">
+      <div class="topbar"><div class="page-title">Library</div><div class="clock-pill"><span id="clock-l">--:--</span></div></div>
+      <div class="lib-controls">
+        <input class="search-box" id="lib-search" placeholder="Search games..." oninput="renderLibrary()">
+        <button class="filter-btn active" data-filter="all"   onclick="setFilter(this)">All</button>
+        <button class="filter-btn"        data-filter="Steam" onclick="setFilter(this)">Steam</button>
+        <button class="filter-btn"        data-filter="Epic"  onclick="setFilter(this)">Epic</button>
+        <button class="filter-btn"        data-filter="Other" onclick="setFilter(this)">Other</button>
+      </div>
+      <div class="lib-grid" id="lib-grid"></div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div class="page" id="page-insights">
+      <div class="topbar"><div class="page-title">Insights</div><div class="clock-pill"><span id="clock-i">--:--</span></div></div>
+      <div class="insights-grid" id="insights-grid"></div>
+    </div>
+
+    <!-- ADD GAME -->
+    <div class="page" id="page-add">
+      <div class="topbar"><div class="page-title">Add Game</div></div>
+      <div class="settings-layout">
+
+        <!-- Steam name search -->
+        <div class="card-block">
+          <h3>Search by name</h3>
+          <p>Search Steam's database and auto-fetch cover art and info.</p>
+          <div class="input-row">
+            <input class="inp" id="search-name-inp" placeholder="e.g. Elden Ring"
+              onkeydown="if(event.key==='Enter')searchByName()">
+            <button class="btn-primary" id="btn-search-name" onclick="searchByName()">Search</button>
+          </div>
+          <div class="status-msg" id="search-status"></div>
+          <div class="results-list" id="search-results-list"></div>
+          <div class="result-preview" id="search-preview">
+            <img id="preview-img" src="" alt="" class="preview-img">
+            <div style="flex:1">
+              <div class="pname" id="preview-name"></div>
+              <div class="psub"  id="preview-sub"></div>
+              <div class="mood-check-row" id="preview-moods"></div>
+              <button class="btn-primary" onclick="confirmAddSearch()" style="margin-top:6px">Add to Library</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Steam App ID -->
+        <div class="card-block">
+          <h3>Paste Steam App ID</h3>
+          <p>Find it in the Steam store URL:<br><code style="color:var(--accent);font-size:11px">store.steampowered.com/app/<strong>570</strong></code></p>
+          <div class="input-row">
+            <input class="inp" id="appid-inp" placeholder="e.g. 570" type="number"
+              onkeydown="if(event.key==='Enter')fetchByAppId()">
+            <button class="btn-primary" id="btn-appid" onclick="fetchByAppId()">Fetch</button>
+          </div>
+          <div class="status-msg" id="appid-status"></div>
+          <div class="result-preview" id="appid-preview">
+            <img id="appid-img" src="" alt="" class="preview-img">
+            <div style="flex:1">
+              <div class="pname" id="appid-name"></div>
+              <div class="psub"  id="appid-sub"></div>
+              <div class="mood-check-row" id="appid-moods"></div>
+              <button class="btn-primary" onclick="confirmAddAppId()" style="margin-top:6px">Add to Library</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom / non-Steam game -->
+        <div class="card-block" style="grid-column:1/-1">
+          <h3>Add custom game</h3>
+          <p>For non-Steam games (Minecraft, GOG, etc.). Pick an executable and optional cover image.</p>
+          <div class="input-row">
+            <input  class="inp" id="custom-name-inp" placeholder="Game name (required)">
+            <select class="inp" id="custom-platform-sel" style="flex:0 0 130px">
+              <option value="Other">Other</option>
+              <option value="Epic">Epic</option>
+              <option value="GOG">GOG</option>
+              <option value="Battle.net">Battle.net</option>
+              <option value="Xbox">Xbox</option>
+            </select>
+          </div>
+          <div class="input-row">
+            <input class="inp" id="custom-genre-inp" placeholder="Genre (e.g. Sandbox, RPG)">
+          </div>
+          <div class="input-row">
+            <input class="inp" id="custom-exe-disp" placeholder="Executable path (optional)" readonly>
+            <button class="btn-primary" onclick="browseExe()">Browse…</button>
+          </div>
+          <div class="input-row">
+            <input class="inp" id="custom-args-inp" placeholder="Launch arguments (optional, e.g. -dx12)">
+          </div>
+          <div class="input-row">
+            <input class="inp" id="custom-img-disp" placeholder="Cover image (optional)" readonly>
+            <button class="btn-primary" onclick="browseCustomImg()">Browse…</button>
+          </div>
+          <div class="mood-check-row" id="custom-moods" style="margin-top:4px"></div>
+          <button class="btn-primary" onclick="addCustomGame()" style="margin-top:8px">Add to Library</button>
+          <div class="status-msg" id="custom-status"></div>
+        </div>
+
+        <!-- Auto-detect installed games -->
+        <div class="card-block" style="grid-column:1/-1">
+          <h3>Scan installed games</h3>
+          <p>Automatically detect games from Steam and Epic Games installed on this PC. Only games not already in your library will appear.</p>
+          <button class="btn-primary" id="btn-scan" onclick="runScan()">Scan now</button>
+          <div class="status-msg" id="scan-status" style="margin-top:12px"></div>
+          <div id="scan-results"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FREE GAMES -->
+    <div class="page" id="page-free">
+      <div class="topbar"><div class="page-title">Free Games</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">
+
+        <!-- Epic column -->
+        <div>
+          <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Epic Games Store</div>
+          <div class="lib-grid" id="free-epic-grid"></div>
+          <div class="status-msg" id="free-epic-status" style="margin-top:8px"></div>
+          <button class="btn-skip" onclick="brioAPI.openUrl('https://store.epicgames.com/free-games')" style="font-size:12px;padding:8px 14px;margin-top:14px">Browse Epic free games ↗</button>
+        </div>
+
+        <!-- Steam column -->
+        <div>
+          <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Steam · 100% off specials</div>
+          <div class="lib-grid" id="free-steam-grid"></div>
+          <div class="status-msg" id="free-steam-status" style="margin-top:8px"></div>
+          <button class="btn-skip" onclick="brioAPI.openUrl('https://store.steampowered.com/search/?maxprice=free&specials=1')" style="font-size:12px;padding:8px 14px;margin-top:14px">Browse Steam free to play ↗</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="topbar"><div class="page-title">Settings</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+
+        <!-- Left column: Behaviour -->
+        <div class="card-block">
+          <h3>Behaviour</h3>
+          <p></p>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Launch on system startup</div>
+              <div class="toggle-sub">Start Brío automatically when you log in</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autostart-toggle" onchange="toggleAutoStart(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Minimize to tray on close</div>
+              <div class="toggle-sub">Keep Brío running in the system tray</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="tray-toggle" onchange="setMinimizeToTray(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Start page</div>
+              <div class="toggle-sub">Which page opens when Brío launches</div>
+            </div>
+            <select class="inp" id="start-page-sel" style="flex:0 0 115px" onchange="setStartPage(this.value)">
+              <option value="discover">Discover</option>
+              <option value="library">Library</option>
+            </select>
+          </div>
+          <div class="toggle-row" style="border-bottom:none">
+            <div>
+              <div class="toggle-label">Default mood</div>
+              <div class="toggle-sub">Pre-select a mood on launch instead of auto</div>
+            </div>
+            <select class="inp" id="default-mood-sel" style="flex:0 0 115px" onchange="setDefaultMood(this.value)">
+              <option value="">Auto-detect</option>
+              <option value="chill">Chill</option>
+              <option value="focused">Focused</option>
+              <option value="hype">Hype</option>
+              <option value="social">Social</option>
+              <option value="explore">Explore</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Right column: Appearance + Holidays + Danger zone -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <div class="card-block">
+            <h3>Appearance</h3>
+            <p></p>
+            <div class="toggle-row" style="border-bottom:none;align-items:flex-start;padding-top:10px">
+              <div>
+                <div class="toggle-label">Accent color</div>
+                <div class="toggle-sub">Theme highlight color throughout the app</div>
+              </div>
+              <div id="accent-swatches" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:160px"></div>
+            </div>
+          </div>
+
+          <div class="card-block">
+            <h3>Holidays</h3>
+            <p></p>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Country</div>
+                <div class="toggle-sub">Used to show local public holidays in Insights</div>
+              </div>
+              <select class="inp" id="country-sel" style="flex:0 0 150px" onchange="setCountry(this.value)">
+                <option value="">Not set</option>
+              </select>
+            </div>
+            <div class="toggle-row" style="border-bottom:none">
+              <div>
+                <div class="toggle-label">Show holiday alerts</div>
+                <div class="toggle-sub">Display in Discover and Insights</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-holidays-toggle" onchange="setShowHolidays(this.checked)" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="card-block" style="border-color:rgba(248,113,113,0.2)">
+            <h3 style="color:var(--red)">Danger zone</h3>
+            <p>Permanently removes all games and session history from your library. This cannot be undone.</p>
+            <button class="btn-danger" onclick="resetLibrary()">Reset library data</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- #main -->
+</div><!-- #shell -->
+</div><!-- #app-root -->
+
+<!-- Game edit modal -->
+<div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal-box">
+    <div class="modal-title" id="em-title">Configure Game</div>
+    <button class="modal-close" onclick="closeEditModal()">×</button>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:6px">
+        <input class="inp" id="em-exe" placeholder="Executable path (for non-Steam / Epic)" readonly>
+        <button class="btn-primary" style="font-size:11px;padding:6px 10px" onclick="emBrowseExe()">Browse…</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:11px;color:var(--muted2);flex-shrink:0">Steam ID</span>
+        <input class="inp" id="em-steamid" placeholder="App ID (leave blank for non-Steam)" type="number">
+      </div>
+      <input class="inp" id="em-args" placeholder="Launch arguments (e.g. -dx12 -fullscreen)">
+      <div style="display:flex;gap:6px">
+        <input class="inp" id="em-img" placeholder="Local cover image (optional)" readonly>
+        <button class="btn-primary" style="font-size:11px;padding:6px 10px" onclick="emBrowseImg()">Browse…</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+      <button class="btn-primary" onclick="saveEditModal()">Save changes</button>
+      <button class="btn-danger" style="margin-left:auto" onclick="deleteEditGame()">Remove from library</button>
+    </div>
+    <div class="status-msg" id="em-status"></div>
+  </div>
+</div>
+
+<!-- Welcome / location modal -->
+<div id="welcome-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:460px">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px">Welcome to Brío!</div>
+    <p style="font-size:13px;color:var(--muted2);line-height:1.7">To show local public holidays and free days in your Insights, we need to know your country. You can change or remove this at any time in Settings.</p>
+    <select class="inp" id="welcome-country-sel" style="margin-top:2px">
+      <option value="">Select your country…</option>
+    </select>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn-primary" onclick="confirmWelcomeLocation()">Set location</button>
+      <button class="btn-skip" onclick="dismissWelcomeModal()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{
+  "name": "brio",
+  "productName": "Brío",
+  "version": "1.0.0",
+  "description": "Mood-aware game launcher",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder",
+    "release": "electron-builder --publish always"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.8.3"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.zyrxbusiness.brio",
+    "productName": "Brío",
+    "files": [
+      "**/*",
+      "!node_modules/electron/**",
+      "!**/*.map"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "zyrxtheproto",
+      "repo": "brio"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Brío",
+      "artifactName": "Brio-Setup.exe"
+    }
+  }
+}
