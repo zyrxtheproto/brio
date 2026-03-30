@@ -578,6 +578,18 @@ select.inp{cursor:pointer}
   </div>
 </div>
 
+<div id="empty-library-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:480px">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;color:var(--accent);margin-bottom:4px">Your library is empty</div>
+    <p style="font-size:13px;color:var(--muted2);line-height:1.7">Brío can scan your installed Steam and Epic games automatically, or you can add them one by one.</p>
+    <div id="elm-scan-area"></div>
+    <div style="display:flex;gap:8px;margin-top:12px" id="elm-buttons">
+      <button class="btn-primary" onclick="elmScan()">Scan installed games</button>
+      <button class="btn-skip" onclick="elmManual()">Add manually</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="update-banner" style="display:none">
   <span id="update-banner-msg"></span>

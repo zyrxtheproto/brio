@@ -737,6 +737,47 @@ function populateCountrySelects() {
   })
 }
 
+// ── Empty-library first-run modal ─────────────────────────────────────────────
+function showEmptyLibraryModal() {
+  document.getElementById('empty-library-modal').classList.add('show')
+}
+
+function closeEmptyLibraryModal() {
+  document.getElementById('empty-library-modal').classList.remove('show')
+}
+
+function elmManual() {
+  closeEmptyLibraryModal()
+  goPage('add', document.getElementById('nb-add'))
+}
+
+async function elmScan() {
+  const area    = document.getElementById('elm-scan-area')
+  const buttons = document.getElementById('elm-buttons')
+  buttons.style.display = 'none'
+  area.innerHTML = '<p style="font-size:13px;color:var(--muted2);margin-top:8px">Scanning…</p>'
+
+  let found
+  try { found = await window.brioAPI.scanGames() }
+  catch (e) {
+    area.innerHTML = `<p style="font-size:13px;color:var(--red);margin-top:8px">Scan failed: ${e.message}</p>`
+    buttons.style.display = 'flex'
+    return
+  }
+
+  if (!found.length) {
+    area.innerHTML = '<p style="font-size:13px;color:var(--muted2);margin-top:8px">No installed Steam or Epic games detected. You can add games manually instead.</p>'
+    buttons.style.display = 'flex'
+    return
+  }
+
+  // Import all found games directly
+  for (const g of found) GAMES.push(g)
+  saveGames(); renderLibrary(); renderDiscover(); renderManage()
+  closeEmptyLibraryModal()
+  toast(`Imported ${found.length} game${found.length !== 1 ? 's' : ''}!`)
+}
+
 function showWelcomeModal() {
   populateCountrySelects()
   document.getElementById('welcome-modal').classList.add('show')
@@ -1062,6 +1103,9 @@ async function init() {
 
   // First-run location prompt
   if (!SETTINGS.locationSetup) showWelcomeModal()
+
+  // Empty library prompt (first run or after reset)
+  if (!GAMES.length) showEmptyLibraryModal()
 
   // Background check for free games — shows notif dot if any found
   checkForFreeGames()
